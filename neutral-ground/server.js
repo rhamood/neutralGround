@@ -1,10 +1,10 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import { Groq } from "groq-sdk";
 
 dotenv.config();
 
-import { Groq } from "groq-sdk";
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const app = express();
@@ -28,26 +28,28 @@ app.post("/api/summarize", async (req, res) => {
 Follow these precise instructions:
 
 Extraction Rules:
-1. Extract only factual bullet points from the article:
+1. Extract only factual bullet points from the article.
 2. Include exact details: full names, dates, times, ages, places, and figures.
 3. Replace vague terms (e.g., “adult,” “a group,” “many”) with specific data, if available.
-4. Exclude all forms of opinion, speculation, and emotionally charged language:
+4. Exclude all forms of opinion, speculation, and emotionally charged language.
 5. Avoid adjectives like tragic, horrifying, shocking, or phrases like it is believed that, critics say, etc.
 6. Refrain from editorializing or making assumptions.
-7. Cross-check all information with at least two additional reputable sources:
-8. If conflicting facts exist, list them side-by-side without interpretation. Identify and remove bias techniques, including:
+7. Cross-check all information with at least two additional reputable sources.
+8. If conflicting facts exist, list them side-by-side without interpretation.
+
+Identify and remove bias techniques, including:
 - Loaded language or framing
 - Selective quoting or omission that alters meaning
 - Imbalanced representation of viewpoints
 
-Return ONLY the valid JSON object, with no additional commentary, markdown, or explanation. Strictly output JSON as:
+Return ONLY the valid JSON object, with no additional commentary, markdown, or explanation.
 
 {
   "clear text": ["fact 1", "fact 2", "..."],
   "Bias or framing techniques removed": ["bias 1", "bias 2", "..."]
 }
 
-Do NOT add a sentence at the start. Just give JSON object.
+Do NOT add a sentence at the start AND the end. Just give JSON object.
 
 Text:
 ${articleText}`,
@@ -72,24 +74,18 @@ ${articleText}`,
       throw new Error("No content received from Groq API");
     }
 
+    // Robust JSON extractor (regex catches first {...} block)
+    const match = content.match(/\{[\s\S]*?\}/);
+    if (!match) {
+      throw new Error("No JSON object found in Groq response.");
+    }
+
     let parsed;
     try {
-      // Extract JSON object between first '{' and last '}'
-      const firstBraceIndex = content.indexOf("{");
-      const lastBraceIndex = content.lastIndexOf("}");
-
-      if (firstBraceIndex === -1 || lastBraceIndex === -1) {
-        throw new Error("No JSON object found in response");
-      }
-
-      const jsonText = content
-        .slice(firstBraceIndex, lastBraceIndex + 1)
-        .trim();
-
-      parsed = JSON.parse(jsonText);
-    } catch (e) {
-      console.error("❌ Failed to parse JSON from Groq response:\n", content);
-      throw new Error("Response from Groq is not valid JSON");
+      parsed = JSON.parse(match[0]);
+    } catch (jsonErr) {
+      console.error("❌ Failed to parse JSON block:", match[0]);
+      throw new Error("Groq response contained invalid JSON.");
     }
 
     res.json(parsed);
