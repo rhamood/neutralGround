@@ -70,18 +70,14 @@ const handleSubmit = async (e: React.FormEvent) => {
   };
 
   return (
-    <>
+    <div className="bg-cyan-100 min-h-screen">
       <div
         ref={formRef}
-        className="bg-cyan-100 h-screen flex justify-center items-center flex-col gap-4 px-72"
+        className="flex justify-center items-center flex-col gap-4 px-72"
       >
-        <h1 className="text-blue-700 font-extrabold text-7xl"> Neutral Ground </h1>
-        <p>
-          In today’s media landscape, news articles are often written with implicit bias,
-          whether through selective language, omission of context, or emotionally charged framing.
-          This can make it difficult for readers to quickly identify the objective facts,
-          especially when different sources present conflicting narratives.
-          Please enter the link you want to check the bias on and we will tell you all the facts
+        <h1 className="text-blue-700 font-extrabold text-7xl py-16"> Neutral Ground </h1>
+        <p className="text-2xl pb-4">
+          Paste the link to a news article, and we'll reveal the facts.
         </p>
         <div className="w-full">
           <form onSubmit={handleSubmit} className="flex flex-row gap-2">
@@ -89,15 +85,15 @@ const handleSubmit = async (e: React.FormEvent) => {
               type="text"
               name="url"
               placeholder="Enter URL here"
-              className="border-2 border-blue-500 rounded-lg p-2 w-5/6"
+              className="border-2 border-blue-500 rounded-lg p-4 w-5/6 text-lg"
             />
             <button
               disabled={loading}
-              className="bg-blue-500 text-white px-4 py-2 w-1/6 rounded hover:bg-blue-600 transition-colors disabled:opacity-50"
+              className="bg-blue-500 text-white px-4 py-2 w-1/6 rounded hover:bg-blue-600 transition-colors disabled:opacity-50 focus:bg-red-200 text-lg"
             >
               {loading ? "Loading..." : "Search"}
             </button>
-          </form>
+          </form> 
           {error && <p className="text-red-600 mt-2">{error}</p>}
         </div>
       </div>
@@ -105,33 +101,33 @@ const handleSubmit = async (e: React.FormEvent) => {
       {showResults && summary && (
         <div
           ref={resultsRef}
-          className="h-screen flex flex-col items-center bg-gray-100 p-8 relative"
+          className="flex flex-col p-8 relative px-96 "
         >
           <button className="absolute right-6 top-6 text-3xl" onClick={handleClose}>
             &#10006;
           </button>
 
-          <h2 className="text-5xl font-bold text-blue-700 mb-2">Here are the facts from the article you provided:</h2>
+          <h2 className="text-5xl font-bold text-blue-700 pb-6 font-mono pt-8 text-center">Here are the facts from the article you provided:</h2>
 
           <ul className="list-disc list-inside mb-4 space-y-1">
             {summary["clear text"].map((fact, idx) => (
-              <li key={idx}>{fact}</li>
+              <li className="text-xl" key={idx}>{fact}</li>
             ))}
           </ul>
 
-          <h3 className="text-3xl font-semibold text-blue-700 mb-2">
+          <h3 className="text-5xl font-bold text-blue-700 pb-6 pt-16 font-mono text-center">
             Bias or framing techniques removed:
           </h3>
 
           <ul className="list-disc list-inside mb-8 space-y-1">
             {summary["Bias or framing techniques removed"].map((bias, idx) => (
-              <li key={idx}>{bias}</li>
+              <li className="text-xl" key={idx}>{bias}</li>
             ))}
           </ul>
 
         </div>
       )}
-    </>
+    </div>
   );
 }
 
