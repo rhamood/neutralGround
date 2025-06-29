@@ -40,23 +40,17 @@ Extraction Rules:
 - Selective quoting or omission that alters meaning
 - Imbalanced representation of viewpoints
 
-Return a JSON object like this:
+Return ONLY the valid JSON object, with no additional commentary, markdown, or explanation. Strictly output JSON as:
+
 {
   "clear text": ["fact 1", "fact 2", "..."],
   "Bias or framing techniques removed": ["bias 1", "bias 2", "..."]
 }
 
+Do NOT add a sentence at the start. Just give JSON object.
+
 Text:
 ${articleText}`,
-    },
-    {
-      role: "assistant",
-      content:
-        "I'm ready to help. Please provide the news article text you'd like me to transform into a verified, factual summary. I'll follow the extraction rules and return a JSON object with the factual bullet points and identified bias techniques removed.",
-    },
-    {
-      role: "user",
-      content: articleText,
     },
   ];
 
@@ -67,24 +61,34 @@ ${articleText}`,
       temperature: 1,
       max_completion_tokens: 1024,
       top_p: 1,
-      stream: false, // single response
+      stream: false,
       stop: null,
     });
 
-    // Log raw response content for debugging
     const content = chatCompletion.choices[0]?.message?.content;
-    console.log("Groq raw response content:", content);
+    console.log("🧠 Raw Groq response:", content);
 
     if (!content) {
       throw new Error("No content received from Groq API");
     }
 
-    // Parse the JSON response
     let parsed;
     try {
-      parsed = JSON.parse(content);
+      // Extract JSON object between first '{' and last '}'
+      const firstBraceIndex = content.indexOf("{");
+      const lastBraceIndex = content.lastIndexOf("}");
+
+      if (firstBraceIndex === -1 || lastBraceIndex === -1) {
+        throw new Error("No JSON object found in response");
+      }
+
+      const jsonText = content
+        .slice(firstBraceIndex, lastBraceIndex + 1)
+        .trim();
+
+      parsed = JSON.parse(jsonText);
     } catch (e) {
-      console.error("Failed to parse JSON from Groq response:", content);
+      console.error("❌ Failed to parse JSON from Groq response:\n", content);
       throw new Error("Response from Groq is not valid JSON");
     }
 
