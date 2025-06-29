@@ -1,8 +1,8 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./App.css";
-import { summarizeFacts} from "./api";
-import type {SummaryResponse } from "./api";
+import { summarizeFacts} from "./api.tsx";
+import type {SummaryResponse } from "./api.ts";
 
 function App() {
   const [showResults, setShowResults] = useState(false);
