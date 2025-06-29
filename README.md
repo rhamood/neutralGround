@@ -43,6 +43,6 @@ pip install flask flask-cors newspaper3k lxml[html_clean]
 
 ```bash
 cd neutral-ground/src/backend
-pip main.py
+python main.py
 
 ```
