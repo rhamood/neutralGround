@@ -17,9 +17,9 @@ function App() {
   const navigation = useNavigate();
 
   
-const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
-  const input = (e.target as HTMLFormElement).elements.namedItem('url') as HTMLInputElement;
+  const input = e.currentTarget.elements.namedItem("url") as HTMLInputElement;
   const url = input.value.trim();
 
   if (!url) {
@@ -27,34 +27,35 @@ const handleSubmit = async (e: React.FormEvent) => {
     return;
   }
 
+  setLoading(true);
+  setError(null);
+
   try {
-    //const articleText = "Three Palestinians have been shot dead after dozens of Israeli settlers attacked a Palestinian village in the occupied West Bank, Palestinian authorities say.Video footage from Kafr Malik, near Ramallah, on Wednesday night showed a car and a home on fire and Palestinians running away as gunfire "; 
+        //const articleText = "Three Palestinians have been shot dead after dozens of Israeli settlers attacked a Palestinian village in the occupied West Bank, Palestinian authorities say.Video footage from Kafr Malik, near Ramallah, on Wednesday night showed a car and a home on fire and Palestinians running away as gunfire "; 
     // // take input from web scrapper
     // const articleText = await fetchArticleText(url); // You need to implement this (or stub it for now)
-    const response = await fetch('http://localhost:5000/parse-article', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ url }),
-      });
-      const data = await response.json();
-      console.log(data.text);
-      console.log(typeof data.text);
+    const response = await fetch("http://localhost:5000/parse-article", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+
+    const data = await response.json();      
+    console.log(data.text);
+    console.log(typeof data.text);
     const summary = await summarizeFacts(data.text);
     setSummary(summary);
     console.log('Summary:', summary);
-
-    //setArticleData(data);
-
-      setShowResults(true);
-      setTimeout(() => {
-        resultsRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
+    setShowResults(true);
+    setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
   } catch (err) {
-    console.error('Error summarizing:', err);
+    console.error("Error summarizing:", err);
+    setError("An error occurred while summarizing. Please try again.");
+  } finally {
+    setLoading(false); // ✅ Stop loading
   }
-}
+};
+
 
   const handleClose = () => {
     setShowResults(false);
@@ -68,6 +69,16 @@ const handleSubmit = async (e: React.FormEvent) => {
   const navigateToBiasPage = () => {
     navigation("/bias");
   };
+
+  const LoadingOverlay: React.FC = () => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="flex items-center bg-white p-6 rounded-lg shadow-lg text-xl font-semibold text-blue-700">
+      <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-blue-500 border-solid mr-4"></div>
+      Processing your article...
+    </div>
+  </div>
+);
+
 
   return (
     <div className="bg-cyan-100 min-h-screen">
@@ -127,6 +138,8 @@ const handleSubmit = async (e: React.FormEvent) => {
 
         </div>
       )}
+      {loading && <LoadingOverlay />}
+
     </div>
   );
 }
