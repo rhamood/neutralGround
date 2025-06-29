@@ -1,5 +1,4 @@
 import React, { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import "./App.css";
 import { summarizeFacts} from "./api.tsx";
 import type {SummaryResponse } from "./api.ts";
@@ -11,10 +10,8 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<SummaryResponse | null>(null);
-  const [articleData, setArticleData] = useState<{ title: string; text: string } | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
-  const navigation = useNavigate();
 
   
 const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -31,9 +28,6 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   setError(null);
 
   try {
-        //const articleText = "Three Palestinians have been shot dead after dozens of Israeli settlers attacked a Palestinian village in the occupied West Bank, Palestinian authorities say.Video footage from Kafr Malik, near Ramallah, on Wednesday night showed a car and a home on fire and Palestinians running away as gunfire "; 
-    // // take input from web scrapper
-    // const articleText = await fetchArticleText(url); // You need to implement this (or stub it for now)
     const response = await fetch("http://localhost:5000/parse-article", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -45,17 +39,15 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     console.log(typeof data.text);
     const summary = await summarizeFacts(data.text);
     setSummary(summary);
-    console.log('Summary:', summary);
     setShowResults(true);
     setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
   } catch (err) {
     console.error("Error summarizing:", err);
     setError("An error occurred while summarizing. Please try again.");
   } finally {
-    setLoading(false); // ✅ Stop loading
+    setLoading(false);
   }
 };
-
 
   const handleClose = () => {
     setShowResults(false);
@@ -64,10 +56,6 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     setTimeout(() => {
       formRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);
-  };
-
-  const navigateToBiasPage = () => {
-    navigation("/bias");
   };
 
   const LoadingOverlay: React.FC = () => (
